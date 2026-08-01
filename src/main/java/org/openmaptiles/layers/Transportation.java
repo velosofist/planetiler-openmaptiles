@@ -505,6 +505,17 @@ public class Transportation implements
         return;
       }
 
+      boolean hasBicycleAccess =
+          "designated".equals(element.bicycle());
+
+      // Check for footway, steps, pedestrian, OR path
+      boolean isPathOrFootway = isFootwayOrSteps(highway) || "path".equals(highwayClass);
+
+      // Drops minzoom down to z11 if bicycle access is permitted
+      if (isPathOrFootway && hasBicycleAccess) {
+          minzoom = Math.min(minzoom, 12);
+      }
+
       boolean highwayRamp = isLink(highway);
       Integer rampAboveZ12 = (highwayRamp || element.isRamp()) ? 1 : null;
       Integer rampBelowZ12 = highwayRamp ? 1 : null;
@@ -516,6 +527,11 @@ public class Transportation implements
         .setAttr(Fields.CLASS, coalesce(minZoomAndNewClass.classOverride, highwayClass))
         .setAttr(Fields.SUBCLASS, highwaySubclass(highwayClass, element.publicTransport(), highway))
         .setAttr(Fields.NETWORK, networkType != null ? networkType.name : null)
+        .setAttr("maxspeed", element.source().getTag("maxspeed"))
+        .setAttr("cycleway", element.source().getTag("cycleway"))
+        .setAttr("cycleway:left", element.source().getTag("cycleway:left"))
+        .setAttr("cycleway:right", element.source().getTag("cycleway:right"))
+        .setAttr("cycleway:both", element.source().getTag("cycleway:both"))
         .setAttrWithMinSize(Fields.BRUNNEL, brunnel(element.isBridge(), element.isTunnel(), element.isFord()), 4, 4, 12)
         // z8+
         .setAttrWithMinzoom(Fields.EXPRESSWAY, expressway ? 1 : null, 8)
@@ -523,11 +539,8 @@ public class Transportation implements
         .setAttrWithMinSize(Fields.LAYER, nullIfLong(element.layer(), 0), 4, 9, 12)
         .setAttrWithMinzoom(Fields.BICYCLE, nullIfEmpty(element.bicycle()), 9)
         .setAttrWithMinzoom(Fields.FOOT, nullIfEmpty(element.foot()), 9)
-        .setAttrWithMinzoom(Fields.HORSE, nullIfEmpty(element.horse()), 9)
-        .setAttrWithMinzoom(Fields.MTB_SCALE, nullIfEmpty(element.mtbScale()), 9)
         .setAttrWithMinzoom(Fields.OFFICIAL, official(highway, element.informal(), element.operator()), 9)
         .setAttrWithMinzoom(Fields.ACCESS, access(element.access()), 9)
-        .setAttrWithMinzoom(Fields.TOLL, element.toll() ? 1 : null, 9)
         // sometimes z9+, sometimes z12+
         .setAttr(Fields.RAMP, minzoom >= 12 ? rampAboveZ12 :
           ((ZoomFunction<Integer>) z -> z < 9 ? null : z >= 12 ? rampAboveZ12 : rampBelowZ12))
