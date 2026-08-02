@@ -511,9 +511,16 @@ public class Transportation implements
       // Check for footway, steps, pedestrian, OR path
       boolean isPathOrFootway = isFootwayOrSteps(highway) || "path".equals(highwayClass);
 
-      // Drops minzoom down to z11 if bicycle access is permitted
-      if (isPathOrFootway && hasBicycleAccess) {
-          minzoom = Math.min(minzoom, 12);
+      boolean isCycleway = "cycleway".equals(highway) 
+          || "cycleway".equals(element.source().getTag("subclass"))
+          || element.source().hasTag("cycleway")
+          || element.source().hasTag("cycleway:left")
+          || element.source().hasTag("cycleway:right")
+          || element.source().hasTag("cycleway:both");
+
+      // Lower minzoom for dedicated cycleways OR paths/footways with designated bicycle access
+      if (isCycleway || (isPathOrFootway && hasBicycleAccess)) {
+          minzoom = Math.min(minzoom, 10);
       }
 
       boolean highwayRamp = isLink(highway);
