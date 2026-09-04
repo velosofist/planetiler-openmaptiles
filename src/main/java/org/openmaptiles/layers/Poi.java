@@ -314,6 +314,7 @@ public class Poi implements
     output.setBufferPixels(BUFFER_SIZE)
       .setAttr(Fields.CLASS, poiClass)
       .setAttr(Fields.SUBCLASS, subclass)
+      .setAttr("osm_id", element.source().id())
       .setAttr(Fields.LAYER, nullIfLong(element.layer(), 0))
       .setAttr(Fields.LEVEL, Parse.parseLongOrNull(element.source().getTag("level")))
       .setAttr(Fields.INDOOR, element.indoor() ? 1 : null)
