@@ -658,17 +658,22 @@ public class Transportation implements
     if (clazz != null) {
       String service = nullIfEmpty(element.service());
       int minzoom;
+
       if (service != null) {
-        minzoom = 14;
+        // Service tracks (sidings, spurs, yards) still hidden until higher zooms
+        minzoom = 12; 
       } else if (FieldValues.SUBCLASS_RAIL.equals(railway)) {
-        minzoom = "main".equals(element.usage()) ? 8 : 10;
+        // Force ALL main/standard rail tracks to render from zoom 3,
+        // ignoring missing/inconsistent OSM 'usage' tags
+        minzoom = 3; 
       } else if (FieldValues.SUBCLASS_NARROW_GAUGE.equals(railway)) {
-        minzoom = 10;
+        minzoom = 5;
       } else if (FieldValues.SUBCLASS_LIGHT_RAIL.equals(railway)) {
-        minzoom = 11;
+        minzoom = 7;
       } else {
-        minzoom = 14;
+        minzoom = 10;
       }
+
       features.line(LAYER_NAME).setBufferPixels(BUFFER_SIZE)
         .setAttr(Fields.CLASS, clazz)
         .setAttr(Fields.SUBCLASS, railway)
@@ -677,7 +682,9 @@ public class Transportation implements
         .setAttrWithMinzoom(Fields.BRUNNEL, brunnel(element.isBridge(), element.isTunnel(), element.isFord()), 10)
         .setAttrWithMinzoom(Fields.LAYER, nullIfLong(element.layer(), 0), 9)
         .setSortKey(element.zOrder())
-        .setMinPixelSize(0) // merge during post-processing, then limit by size
+        // ALLOW SMALL/UNMERGED SEGMENTS AT LOW ZOOM:
+        // By setting minPixelSize to 0, tiny connecting segments won't be dropped at low zoom levels
+        .setMinPixelSize(0) 
         .setMinZoom(minzoom);
     }
   }
